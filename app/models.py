@@ -21,22 +21,22 @@ class Participant(Base):
     __tablename__ = "participants"
     
     id = Column(Integer, primary_key=True, index=True)
-    code = Column(String, unique=True, index=True, nullable=False)  # HUMAN-001, HUMAN-002...
-    name = Column(String, nullable=False)
-    role = Column(String, default="regular")  # admin, lead, senior, regular, assistant
+    code = Column(String(50), unique=True, index=True, nullable=False)  # HUMAN-001, HUMAN-002...
+    name = Column(String(100), nullable=False)
+    role = Column(String(50), default="regular")  # admin, lead, senior, regular, assistant
     default_profit_rate = Column(Float, default=10.0)  # 기본 수익률 (%)
     
     # 연락처 정보
-    phone = Column(String, nullable=True)
-    email = Column(String, nullable=True)
+    phone = Column(String(50), nullable=True)
+    email = Column(String(100), nullable=True)
     
     # 은행 정보
-    bank_name = Column(String, nullable=True)
-    account_number = Column(String, nullable=True)
+    bank_name = Column(String(100), nullable=True)
+    account_number = Column(String(100), nullable=True)
     
     # 첨부 파일 경로
-    id_card_path = Column(String, nullable=True)  # 신분증 사본
-    bankbook_path = Column(String, nullable=True)  # 통장 사본
+    id_card_path = Column(String(500), nullable=True)  # 신분증 사본
+    bankbook_path = Column(String(500), nullable=True)  # 통장 사본
     
     # 메모
     notes = Column(Text, nullable=True)
@@ -54,8 +54,8 @@ class Project(Base):
     __tablename__ = "projects"
     
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False, index=True)
-    client = Column(String, nullable=True)  # 클라이언트/발주처
+    name = Column(String(200), nullable=False, index=True)
+    client = Column(String(200), nullable=True)  # 클라이언트/발주처
     
     # 금액 정보
     total_amount = Column(Float, default=0.0)  # 총 프로젝트 금액
@@ -63,7 +63,7 @@ class Project(Base):
     profit = Column(Float, default=0.0)  # 순이익 (total_amount - cost)
     
     # 프로젝트 상태
-    status = Column(String, default="planned")  # planned, in_progress, completed, settled
+    status = Column(String(50), default="planned")  # planned, in_progress, completed, settled
     
     # 프로젝트 단계별 날짜 (스크린샷 기준)
     idea_date = Column(DateTime, nullable=True)  # 아이디어
@@ -87,7 +87,7 @@ class Project(Base):
     # 진도 관리
     progress_notes = Column(Text, nullable=True)  # 진도 메모
     progress_rate = Column(Float, default=0.0)  # 진도율 (0-100%)
-    current_stage = Column(String, nullable=True)  # 현재 단계
+    current_stage = Column(String(50), nullable=True)  # 현재 단계
     
     # 타임스탬프
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -113,7 +113,7 @@ class Settlement(Base):
     amount = Column(Float, default=0.0)  # 정산 금액
     
     # 지급 정보
-    status = Column(String, default="pending")  # pending, paid, cancelled
+    status = Column(String(50), default="pending")  # pending, paid, cancelled
     paid_at = Column(DateTime, nullable=True)
     
     # 메모
@@ -137,12 +137,12 @@ class ProjectProgress(Base):
     project_id = Column(Integer, ForeignKey('projects.id'), nullable=False)
     
     # 진도 정보
-    stage = Column(String, nullable=True)  # 단계 (아이디어, 소개, 상담, 견적, 계약, 개발, 테스트, 납품, 완료, 유지보수)
+    stage = Column(String(50), nullable=True)  # 단계 (아이디어, 소개, 상담, 견적, 계약, 개발, 테스트, 납품, 완료, 유지보수)
     memo = Column(Text, nullable=False)  # 진도 메모
     progress_rate = Column(Float, default=0.0)  # 진도율 (0-100%)
     
     # 작성자 (향후 추가)
-    author = Column(String, nullable=True)
+    author = Column(String(100), nullable=True)
     
     # 타임스탬프
     created_at = Column(DateTime, default=datetime.utcnow)
