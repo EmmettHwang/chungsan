@@ -63,4 +63,14 @@ def health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    print("\n" + "="*60)
+    print("🎉 청산에사르리랏다 (Chungsan Settlement System)")
+    print("="*60)
+    print("\n📍 접속 URL:")
+    print("   - 메인: http://localhost:8001")
+    print("   - API 문서 (Swagger): http://localhost:8001/docs")
+    print("   - API 문서 (ReDoc): http://localhost:8001/redoc")
+    print("\n⌨️  종료: Ctrl+C")
+    print("="*60 + "\n")
+    
+    uvicorn.run("main:app", host="0.0.0.0", port=8001, reload=True)
