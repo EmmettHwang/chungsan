@@ -65,12 +65,29 @@ class Project(Base):
     # 프로젝트 상태
     status = Column(String, default="planned")  # planned, in_progress, completed, settled
     
-    # 날짜 정보
+    # 프로젝트 단계별 날짜 (스크린샷 기준)
+    idea_date = Column(DateTime, nullable=True)  # 아이디어
+    introduction_date = Column(DateTime, nullable=True)  # 소개
+    consultation_date = Column(DateTime, nullable=True)  # 상담
+    quote_date = Column(DateTime, nullable=True)  # 견적
+    contract_date = Column(DateTime, nullable=True)  # 계약
+    development_date = Column(DateTime, nullable=True)  # 개발
+    test_date = Column(DateTime, nullable=True)  # 테스트
+    delivery_date = Column(DateTime, nullable=True)  # 납품
+    completion_date = Column(DateTime, nullable=True)  # 완료
+    maintenance_date = Column(DateTime, nullable=True)  # 유지보수
+    
+    # 날짜 정보 (기존)
     start_date = Column(DateTime, nullable=True)
     end_date = Column(DateTime, nullable=True)
     
     # 메모
     notes = Column(Text, nullable=True)
+    
+    # 진도 관리
+    progress_notes = Column(Text, nullable=True)  # 진도 메모
+    progress_rate = Column(Float, default=0.0)  # 진도율 (0-100%)
+    current_stage = Column(String, nullable=True)  # 현재 단계
     
     # 타임스탬프
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -79,6 +96,7 @@ class Project(Base):
     # 관계
     participants = relationship("Participant", secondary=project_participants, back_populates="projects")
     settlements = relationship("Settlement", back_populates="project")
+    progress_logs = relationship("ProjectProgress", back_populates="project", cascade="all, delete-orphan")
 
 class Settlement(Base):
     """정산 모델"""
@@ -108,3 +126,27 @@ class Settlement(Base):
     # 관계
     project = relationship("Project", back_populates="settlements")
     participant = relationship("Participant", back_populates="settlements")
+
+class ProjectProgress(Base):
+    """프로젝트 진도 로그 모델"""
+    __tablename__ = "project_progress"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    
+    # 외래키
+    project_id = Column(Integer, ForeignKey('projects.id'), nullable=False)
+    
+    # 진도 정보
+    stage = Column(String, nullable=True)  # 단계 (아이디어, 소개, 상담, 견적, 계약, 개발, 테스트, 납품, 완료, 유지보수)
+    memo = Column(Text, nullable=False)  # 진도 메모
+    progress_rate = Column(Float, default=0.0)  # 진도율 (0-100%)
+    
+    # 작성자 (향후 추가)
+    author = Column(String, nullable=True)
+    
+    # 타임스탬프
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # 관계
+    project = relationship("Project", back_populates="progress_logs")

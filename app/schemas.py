@@ -53,8 +53,28 @@ class ProjectBase(BaseModel):
     total_amount: Optional[float] = 0.0
     cost: Optional[float] = 0.0
     status: Optional[str] = "planned"
+    
+    # 프로젝트 단계별 날짜
+    idea_date: Optional[datetime] = None
+    introduction_date: Optional[datetime] = None
+    consultation_date: Optional[datetime] = None
+    quote_date: Optional[datetime] = None
+    contract_date: Optional[datetime] = None
+    development_date: Optional[datetime] = None
+    test_date: Optional[datetime] = None
+    delivery_date: Optional[datetime] = None
+    completion_date: Optional[datetime] = None
+    maintenance_date: Optional[datetime] = None
+    
+    # 기존 날짜
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
+    
+    # 진도 관리
+    progress_notes: Optional[str] = None
+    progress_rate: Optional[float] = 0.0
+    current_stage: Optional[str] = None
+    
     notes: Optional[str] = None
 
 class ProjectCreate(ProjectBase):
@@ -66,8 +86,27 @@ class ProjectUpdate(BaseModel):
     total_amount: Optional[float] = None
     cost: Optional[float] = None
     status: Optional[str] = None
+    
+    # 프로젝트 단계별 날짜
+    idea_date: Optional[datetime] = None
+    introduction_date: Optional[datetime] = None
+    consultation_date: Optional[datetime] = None
+    quote_date: Optional[datetime] = None
+    contract_date: Optional[datetime] = None
+    development_date: Optional[datetime] = None
+    test_date: Optional[datetime] = None
+    delivery_date: Optional[datetime] = None
+    completion_date: Optional[datetime] = None
+    maintenance_date: Optional[datetime] = None
+    
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
+    
+    # 진도 관리
+    progress_notes: Optional[str] = None
+    progress_rate: Optional[float] = None
+    current_stage: Optional[str] = None
+    
     notes: Optional[str] = None
 
 class Project(ProjectBase):
@@ -145,3 +184,40 @@ class SettlementCalculateResponse(BaseModel):
     
     class Config:
         from_attributes = True
+
+# ============================================================================
+# 프로젝트 진도 (Project Progress) 스키마
+# ============================================================================
+
+class ProjectProgressBase(BaseModel):
+    project_id: int
+    stage: Optional[str] = None
+    memo: str
+    progress_rate: Optional[float] = 0.0
+    author: Optional[str] = None
+
+class ProjectProgressCreate(ProjectProgressBase):
+    pass
+
+class ProjectProgressUpdate(BaseModel):
+    stage: Optional[str] = None
+    memo: Optional[str] = None
+    progress_rate: Optional[float] = None
+
+class ProjectProgress(ProjectProgressBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+# 진도 분석 요청/응답
+class ProgressAnalyzeRequest(BaseModel):
+    memo: str
+
+class ProgressAnalyzeResponse(BaseModel):
+    stage: str
+    progress_rate: float
+    summary: str
+    keywords: List[str]
