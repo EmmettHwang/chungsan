@@ -4,6 +4,8 @@ const API_BASE_URL = 'http://localhost:8001/api';
 // 전역 변수
 let currentParticipantId = null;
 let currentProjectId = null;
+let allParticipants = []; // 모든 참여자 목록
+let projectParticipants = []; // 프로젝트 참여자 목록 (수익률 포함)
 
 // 페이지 로드 시 실행
 document.addEventListener('DOMContentLoaded', function() {
@@ -396,18 +398,33 @@ async function deleteParticipant(id, name) {
 }
 
 // 프로젝트 모달 표시
-function showProjectModal(projectId = null) {
+async function showProjectModal(projectId = null) {
     currentProjectId = projectId;
+    
+    // 참여자 목록 먼저 로드
+    await loadAllParticipants();
+    
     const modal = new bootstrap.Modal(document.getElementById('projectModal'));
     
     if (projectId) {
         document.getElementById('project-modal-title').textContent = '프로젝트 수정';
-        loadProjectData(projectId);
+        await loadProjectData(projectId);
     } else {
         document.getElementById('project-modal-title').textContent = '프로젝트 추가';
         document.getElementById('project-form').reset();
         document.getElementById('project-id').value = '';
+        projectParticipants = [];
+        
+        // 아이디어 날짜를 오늘로 자동 설정
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('project-idea-date').value = today;
     }
+    
+    // 참여자 체크박스 목록 생성
+    renderParticipantsList();
+    
+    // 프로그레스 바 업데이트
+    setTimeout(updateProgressBar, 100);
     
     modal.show();
 }
@@ -417,6 +434,7 @@ async function loadProjectData(id) {
     try {
         const project = await fetchAPI(`/projects/${id}`);
         
+        // 기본 정보
         document.getElementById('project-id').value = project.id;
         document.getElementById('project-name').value = project.name;
         document.getElementById('project-client').value = project.client;
@@ -427,6 +445,26 @@ async function loadProjectData(id) {
         document.getElementById('project-end-date').value = project.end_date || '';
         document.getElementById('project-notes').value = project.notes || '';
         
+        // 10단계 날짜 로드
+        document.getElementById('project-idea-date').value = project.idea_date || '';
+        document.getElementById('project-introduction-date').value = project.introduction_date || '';
+        document.getElementById('project-consultation-date').value = project.consultation_date || '';
+        document.getElementById('project-quote-date').value = project.quote_date || '';
+        document.getElementById('project-contract-date').value = project.contract_date || '';
+        document.getElementById('project-development-date').value = project.development_date || '';
+        document.getElementById('project-test-date').value = project.test_date || '';
+        document.getElementById('project-delivery-date').value = project.delivery_date || '';
+        document.getElementById('project-completion-date').value = project.completion_date || '';
+        document.getElementById('project-maintenance-date').value = project.maintenance_date || '';
+        
+        // 진도 정보 로드
+        document.getElementById('project-progress-notes').value = project.progress_notes || '';
+        document.getElementById('project-current-stage').value = project.current_stage || '';
+        document.getElementById('project-progress-rate').value = project.progress_rate || '';
+        
+        // 프로젝트 참여자 로드
+        await loadProjectParticipants(id);
+        
     } catch (error) {
         console.error('프로젝트 데이터 로드 실패:', error);
         showAlert('프로젝트 정보를 불러오는데 실패했습니다.', 'danger');
@@ -436,6 +474,8 @@ async function loadProjectData(id) {
 // 프로젝트 저장
 async function saveProject() {
     const id = document.getElementById('project-id').value;
+    
+    // 기본 정보
     const data = {
         name: document.getElementById('project-name').value,
         client: document.getElementById('project-client').value,
@@ -444,23 +484,61 @@ async function saveProject() {
         status: document.getElementById('project-status').value,
         start_date: document.getElementById('project-start-date').value || null,
         end_date: document.getElementById('project-end-date').value || null,
-        notes: document.getElementById('project-notes').value || null
+        notes: document.getElementById('project-notes').value || null,
+        
+        // 10단계 날짜
+        idea_date: document.getElementById('project-idea-date').value || null,
+        introduction_date: document.getElementById('project-introduction-date').value || null,
+        consultation_date: document.getElementById('project-consultation-date').value || null,
+        quote_date: document.getElementById('project-quote-date').value || null,
+        contract_date: document.getElementById('project-contract-date').value || null,
+        development_date: document.getElementById('project-development-date').value || null,
+        test_date: document.getElementById('project-test-date').value || null,
+        delivery_date: document.getElementById('project-delivery-date').value || null,
+        completion_date: document.getElementById('project-completion-date').value || null,
+        maintenance_date: document.getElementById('project-maintenance-date').value || null,
+        
+        // 진도 정보
+        progress_notes: document.getElementById('project-progress-notes').value || null,
+        current_stage: document.getElementById('project-current-stage').value || null,
+        progress_rate: document.getElementById('project-progress-rate').value ? parseFloat(document.getElementById('project-progress-rate').value) : null
     };
     
     try {
+        let projectId = id;
+        
         if (id) {
+            // 프로젝트 수정
             await fetchAPI(`/projects/${id}`, {
                 method: 'PUT',
                 body: JSON.stringify(data)
             });
-            showAlert('프로젝트가 수정되었습니다!', 'success');
         } else {
-            await fetchAPI('/projects/', {
+            // 프로젝트 생성
+            const newProject = await fetchAPI('/projects/', {
                 method: 'POST',
                 body: JSON.stringify(data)
             });
-            showAlert('프로젝트가 추가되었습니다!', 'success');
+            projectId = newProject.id;
         }
+        
+        // 참여자 저장 (선택된 참여자만)
+        const selectedParticipants = projectParticipants.filter(p => p.selected);
+        for (const p of selectedParticipants) {
+            try {
+                await fetchAPI(`/projects/${projectId}/participants`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        participant_id: p.id,
+                        profit_rate: p.profit_rate || p.default_profit_rate
+                    })
+                });
+            } catch (err) {
+                console.error(`참여자 ${p.name} 추가 실패:`, err);
+            }
+        }
+        
+        showAlert(id ? '프로젝트가 수정되었습니다!' : '프로젝트가 추가되었습니다!', 'success');
         
         bootstrap.Modal.getInstance(document.getElementById('projectModal')).hide();
         loadProjects();
@@ -594,4 +672,211 @@ function printSettlement() {
 // 정산 엑셀 다운로드
 function exportSettlement() {
     alert('엑셀 다운로드 기능 (구현 예정)');
+}
+
+// ==================== 새로운 함수들 ====================
+
+// 모든 참여자 로드
+async function loadAllParticipants() {
+    try {
+        allParticipants = await fetchAPI('/participants/');
+    } catch (error) {
+        console.error('참여자 목록 로드 실패:', error);
+        showAlert('참여자 목록을 불러오는데 실패했습니다.', 'danger');
+    }
+}
+
+// 프로젝트 참여자 로드
+async function loadProjectParticipants(projectId) {
+    try {
+        const participants = await fetchAPI(`/projects/${projectId}/participants`);
+        
+        // 프로젝트 참여자를 projectParticipants에 저장
+        projectParticipants = allParticipants.map(p => {
+            const projectP = participants.find(pp => pp.participant_id === p.id);
+            return {
+                ...p,
+                selected: !!projectP,
+                profit_rate: projectP ? projectP.profit_rate : p.default_profit_rate
+            };
+        });
+        
+    } catch (error) {
+        console.error('프로젝트 참여자 로드 실패:', error);
+        // 참여자가 없을 수도 있으므로 에러는 무시
+        projectParticipants = allParticipants.map(p => ({
+            ...p,
+            selected: false,
+            profit_rate: p.default_profit_rate
+        }));
+    }
+}
+
+// 참여자 목록 렌더링
+function renderParticipantsList() {
+    const container = document.getElementById('project-participants-list');
+    
+    if (allParticipants.length === 0) {
+        container.innerHTML = '<p class="text-muted">등록된 참여자가 없습니다.</p>';
+        return;
+    }
+    
+    // 참여자가 선택되지 않았으면 초기화
+    if (projectParticipants.length === 0) {
+        projectParticipants = allParticipants.map(p => ({
+            ...p,
+            selected: false,
+            profit_rate: p.default_profit_rate
+        }));
+    }
+    
+    container.innerHTML = projectParticipants.map((p, index) => `
+        <div class="card mb-2">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-1">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" 
+                                   id="participant-${p.id}" 
+                                   ${p.selected ? 'checked' : ''}
+                                   onchange="toggleParticipant(${index})">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-check-label" for="participant-${p.id}">
+                            <strong>${p.name}</strong>
+                            <span class="badge bg-secondary ms-2">${p.code}</span>
+                        </label>
+                        <div class="text-muted small">${getRoleText(p.role)}</div>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted">기본 수익률: ${p.default_profit_rate}%</small>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text">수익률 (%)</span>
+                            <input type="number" class="form-control" 
+                                   id="profit-rate-${p.id}"
+                                   value="${p.profit_rate || p.default_profit_rate}"
+                                   min="0" max="100" step="0.1"
+                                   ${!p.selected ? 'disabled' : ''}
+                                   onchange="updateParticipantRate(${index}, this.value)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// 참여자 선택/해제
+function toggleParticipant(index) {
+    projectParticipants[index].selected = !projectParticipants[index].selected;
+    const input = document.getElementById(`profit-rate-${projectParticipants[index].id}`);
+    input.disabled = !projectParticipants[index].selected;
+}
+
+// 참여자 수익률 업데이트
+function updateParticipantRate(index, rate) {
+    projectParticipants[index].profit_rate = parseFloat(rate);
+}
+
+// 역할 텍스트 반환
+function getRoleText(role) {
+    const roleNames = {
+        'admin': '관리자',
+        'lead': '팀장',
+        'senior': '선임',
+        'regular': '일반',
+        'assistant': '보조'
+    };
+    return roleNames[role] || role;
+}
+
+// 진도 메모 자동 분석
+async function analyzeProgressMemo() {
+    const memo = document.getElementById('project-progress-notes').value;
+    
+    if (!memo || memo.trim() === '') {
+        showAlert('진도 메모를 입력해주세요.', 'warning');
+        return;
+    }
+    
+    try {
+        const result = await fetchAPI('/progress/analyze', {
+            method: 'POST',
+            body: JSON.stringify({ memo: memo })
+        });
+        
+        // 분석 결과 적용
+        if (result.stage) {
+            document.getElementById('project-current-stage').value = result.stage;
+        }
+        if (result.progress_rate !== null && result.progress_rate !== undefined) {
+            document.getElementById('project-progress-rate').value = result.progress_rate;
+        }
+        
+        // 프로그레스 바 업데이트
+        updateProgressBar();
+        
+        showAlert(`분석 완료! 단계: ${result.stage}, 진도율: ${result.progress_rate}%`, 'success');
+        
+    } catch (error) {
+        console.error('진도 메모 분석 실패:', error);
+        showAlert('진도 메모 분석에 실패했습니다: ' + error.message, 'danger');
+    }
+}
+
+// 프로그레스 바 업데이트
+function updateProgressBar() {
+    const stageSelect = document.getElementById('project-current-stage');
+    const rateInput = document.getElementById('project-progress-rate');
+    const progressBar = document.getElementById('overall-progress-bar');
+    const progressText = document.getElementById('overall-progress-text');
+    
+    // 단계별 기본 진도율
+    const stageRates = {
+        '아이디어': 5,
+        '소개': 10,
+        '상담': 20,
+        '견적': 30,
+        '계약': 40,
+        '개발': 60,
+        '테스트': 80,
+        '납품': 90,
+        '완료': 100,
+        '유지보수': 100
+    };
+    
+    let rate = 0;
+    
+    // 진도율 입력값이 있으면 우선 사용
+    if (rateInput.value && rateInput.value.trim() !== '') {
+        rate = parseFloat(rateInput.value);
+    }
+    // 없으면 단계에서 추정
+    else if (stageSelect.value && stageSelect.value !== '') {
+        rate = stageRates[stageSelect.value] || 0;
+    }
+    
+    // 범위 제한
+    rate = Math.max(0, Math.min(100, rate));
+    
+    // 프로그레스 바 업데이트
+    if (progressBar && progressText) {
+        progressBar.style.width = rate + '%';
+        progressText.textContent = rate + '%';
+        
+        // 색상 변경
+        progressBar.className = 'progress-bar progress-bar-striped progress-bar-animated';
+        if (rate < 30) {
+            progressBar.classList.add('bg-danger');
+        } else if (rate < 70) {
+            progressBar.classList.add('bg-warning');
+        } else if (rate < 100) {
+            progressBar.classList.add('bg-info');
+        } else {
+            progressBar.classList.add('bg-success');
+        }
+    }
 }

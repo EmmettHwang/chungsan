@@ -385,6 +385,50 @@ body {
     border-radius: 10px;
 }
 
+/* 타임라인 스타일 */
+.timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 10px 0;
+}
+
+.timeline-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 10px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.timeline-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.timeline-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+}
+
+.timeline-content {
+    font-weight: 500;
+    color: #495057;
+}
+
+.timeline-icon i {
+    font-size: 1.1rem;
+}
+
 /* 툴팁 */
 .tooltip-inner {
     max-width: 300px;

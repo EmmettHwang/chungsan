@@ -349,7 +349,7 @@
 
     <!-- 프로젝트 추가/수정 모달 -->
     <div class="modal fade" id="projectModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">
@@ -358,60 +358,282 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
+                    <!-- 탭 네비게이션 -->
+                    <ul class="nav nav-tabs mb-3" role="tablist">
+                        <li class="nav-item">
+                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#basic-info-tab">
+                                <i class="fas fa-info-circle"></i> 기본 정보
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#stages-tab">
+                                <i class="fas fa-tasks"></i> 프로젝트 단계
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#participants-tab">
+                                <i class="fas fa-users"></i> 참여자 선택
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#progress-tab">
+                                <i class="fas fa-chart-line"></i> 진도 관리
+                            </button>
+                        </li>
+                    </ul>
+
                     <form id="project-form">
                         <input type="hidden" id="project-id">
                         
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">프로젝트명 *</label>
-                                <input type="text" class="form-control" id="project-name" required>
+                        <div class="tab-content">
+                            <!-- 기본 정보 탭 -->
+                            <div class="tab-pane fade show active" id="basic-info-tab">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">프로젝트명 *</label>
+                                        <input type="text" class="form-control" id="project-name" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">클라이언트 *</label>
+                                        <input type="text" class="form-control" id="project-client" required>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">총액 (원) *</label>
+                                        <input type="number" class="form-control" id="project-total-amount" 
+                                               step="1000" min="0" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">원가 (원) *</label>
+                                        <input type="number" class="form-control" id="project-cost" 
+                                               step="1000" min="0" required>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">상태 *</label>
+                                        <select class="form-select" id="project-status" required>
+                                            <option value="planning">기획 중</option>
+                                            <option value="in_progress">진행 중</option>
+                                            <option value="completed">완료</option>
+                                            <option value="cancelled">취소</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">시작일</label>
+                                        <input type="date" class="form-control" id="project-start-date">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">종료일</label>
+                                        <input type="date" class="form-control" id="project-end-date">
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">메모</label>
+                                    <textarea class="form-control" id="project-notes" rows="3"></textarea>
+                                </div>
                             </div>
 
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">클라이언트 *</label>
-                                <input type="text" class="form-control" id="project-client" required>
-                            </div>
-                        </div>
+                            <!-- 프로젝트 단계 탭 -->
+                            <div class="tab-pane fade" id="stages-tab">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i> 각 단계의 완료 날짜를 입력하세요. 자동으로 오늘 날짜가 설정됩니다.
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-lightbulb text-warning"></i> 1. 아이디어
+                                        </label>
+                                        <input type="date" class="form-control" id="project-idea-date">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-handshake text-info"></i> 2. 소개
+                                        </label>
+                                        <input type="date" class="form-control" id="project-introduction-date">
+                                    </div>
+                                </div>
 
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">총액 (원) *</label>
-                                <input type="number" class="form-control" id="project-total-amount" 
-                                       step="1000" min="0" required>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-comments text-primary"></i> 3. 상담
+                                        </label>
+                                        <input type="date" class="form-control" id="project-consultation-date">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-calculator text-success"></i> 4. 견적
+                                        </label>
+                                        <input type="date" class="form-control" id="project-quote-date">
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-file-signature text-danger"></i> 5. 계약
+                                        </label>
+                                        <input type="date" class="form-control" id="project-contract-date">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-code text-dark"></i> 6. 개발
+                                        </label>
+                                        <input type="date" class="form-control" id="project-development-date">
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-vial text-warning"></i> 7. 테스트
+                                        </label>
+                                        <input type="date" class="form-control" id="project-test-date">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-truck text-info"></i> 8. 납품
+                                        </label>
+                                        <input type="date" class="form-control" id="project-delivery-date">
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-check-circle text-success"></i> 9. 완료
+                                        </label>
+                                        <input type="date" class="form-control" id="project-completion-date">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-tools text-secondary"></i> 10. 유지보수
+                                        </label>
+                                        <input type="date" class="form-control" id="project-maintenance-date">
+                                    </div>
+                                </div>
                             </div>
 
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">원가 (원) *</label>
-                                <input type="number" class="form-control" id="project-cost" 
-                                       step="1000" min="0" required>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">상태 *</label>
-                                <select class="form-select" id="project-status" required>
-                                    <option value="planning">기획 중</option>
-                                    <option value="in_progress">진행 중</option>
-                                    <option value="completed">완료</option>
-                                    <option value="cancelled">취소</option>
-                                </select>
+                            <!-- 참여자 선택 탭 -->
+                            <div class="tab-pane fade" id="participants-tab">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i> 참여자를 선택하고 개별 수익률을 설정하세요. 비워두면 기본 수익률이 적용됩니다.
+                                </div>
+                                
+                                <div id="project-participants-list">
+                                    <!-- 참여자 체크박스 리스트가 동적으로 생성됩니다 -->
+                                </div>
                             </div>
 
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">시작일</label>
-                                <input type="date" class="form-control" id="project-start-date">
-                            </div>
+                            <!-- 진도 관리 탭 -->
+                            <div class="tab-pane fade" id="progress-tab">
+                                <!-- 프로그레스 바 -->
+                                <div class="mb-4">
+                                    <label class="form-label"><i class="fas fa-chart-line"></i> 전체 진행률</label>
+                                    <div class="progress" style="height: 30px;">
+                                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                             role="progressbar" 
+                                             id="overall-progress-bar"
+                                             style="width: 0%">
+                                            <strong id="overall-progress-text">0%</strong>
+                                        </div>
+                                    </div>
+                                </div>
 
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">종료일</label>
-                                <input type="date" class="form-control" id="project-end-date">
-                            </div>
-                        </div>
+                                <!-- 진도 메모 입력 -->
+                                <div class="mb-3">
+                                    <label class="form-label"><i class="fas fa-sticky-note"></i> 진도 메모</label>
+                                    <textarea class="form-control" id="project-progress-notes" rows="4" 
+                                              placeholder="예: 개발 60% 완료, 주요 기능 구현 중..."></textarea>
+                                    <small class="form-text text-muted">
+                                        <i class="fas fa-info-circle"></i> 메모에 단계(아이디어, 개발, 테스트 등)와 진도율(숫자 + %)을 포함하면 자동으로 분석됩니다.
+                                    </small>
+                                </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">메모</label>
-                            <textarea class="form-control" id="project-notes" rows="3"></textarea>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">현재 단계</label>
+                                        <select class="form-select" id="project-current-stage" onchange="updateProgressBar()">
+                                            <option value="">자동 판단</option>
+                                            <option value="아이디어">아이디어 (5%)</option>
+                                            <option value="소개">소개 (10%)</option>
+                                            <option value="상담">상담 (20%)</option>
+                                            <option value="견적">견적 (30%)</option>
+                                            <option value="계약">계약 (40%)</option>
+                                            <option value="개발">개발 (60%)</option>
+                                            <option value="테스트">테스트 (80%)</option>
+                                            <option value="납품">납품 (90%)</option>
+                                            <option value="완료">완료 (100%)</option>
+                                            <option value="유지보수">유지보수 (100%)</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">진도율 (%)</label>
+                                        <input type="number" class="form-control" id="project-progress-rate" 
+                                               min="0" max="100" step="1" placeholder="자동 판단"
+                                               onchange="updateProgressBar()">
+                                    </div>
+                                </div>
+
+                                <div class="d-grid gap-2 mb-4">
+                                    <button type="button" class="btn btn-info" onclick="analyzeProgressMemo()">
+                                        <i class="fas fa-brain"></i> 메모 자동 분석 (AI)
+                                    </button>
+                                </div>
+
+                                <!-- 단계별 타임라인 -->
+                                <div class="alert alert-light">
+                                    <h6 class="mb-3"><i class="fas fa-stream"></i> 프로젝트 단계 타임라인</h6>
+                                    <div class="timeline">
+                                        <div class="timeline-item">
+                                            <span class="timeline-icon bg-warning"><i class="fas fa-lightbulb"></i></span>
+                                            <span class="timeline-content">아이디어</span>
+                                        </div>
+                                        <div class="timeline-item">
+                                            <span class="timeline-icon bg-info"><i class="fas fa-handshake"></i></span>
+                                            <span class="timeline-content">소개</span>
+                                        </div>
+                                        <div class="timeline-item">
+                                            <span class="timeline-icon bg-primary"><i class="fas fa-comments"></i></span>
+                                            <span class="timeline-content">상담</span>
+                                        </div>
+                                        <div class="timeline-item">
+                                            <span class="timeline-icon bg-success"><i class="fas fa-calculator"></i></span>
+                                            <span class="timeline-content">견적</span>
+                                        </div>
+                                        <div class="timeline-item">
+                                            <span class="timeline-icon bg-danger"><i class="fas fa-file-signature"></i></span>
+                                            <span class="timeline-content">계약</span>
+                                        </div>
+                                        <div class="timeline-item">
+                                            <span class="timeline-icon bg-dark"><i class="fas fa-code"></i></span>
+                                            <span class="timeline-content">개발</span>
+                                        </div>
+                                        <div class="timeline-item">
+                                            <span class="timeline-icon bg-warning"><i class="fas fa-vial"></i></span>
+                                            <span class="timeline-content">테스트</span>
+                                        </div>
+                                        <div class="timeline-item">
+                                            <span class="timeline-icon bg-info"><i class="fas fa-truck"></i></span>
+                                            <span class="timeline-content">납품</span>
+                                        </div>
+                                        <div class="timeline-item">
+                                            <span class="timeline-icon bg-success"><i class="fas fa-check-circle"></i></span>
+                                            <span class="timeline-content">완료</span>
+                                        </div>
+                                        <div class="timeline-item">
+                                            <span class="timeline-icon bg-secondary"><i class="fas fa-tools"></i></span>
+                                            <span class="timeline-content">유지보수</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </form>
                 </div>
