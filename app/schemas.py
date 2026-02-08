@@ -221,3 +221,41 @@ class ProgressAnalyzeResponse(BaseModel):
     progress_rate: float
     summary: str
     keywords: List[str]
+
+# ============================================================================
+# 프로젝트 원가 (Project Cost) 스키마
+# ============================================================================
+
+class ProjectCostBase(BaseModel):
+    project_id: int
+    category: str  # server, domain, ai_token, hardware, materials, labor, other
+    name: str = Field(..., min_length=1, max_length=200)
+    description: Optional[str] = None
+    amount: float = Field(default=0.0, ge=0)
+    participant_id: Optional[int] = None  # 인건비인 경우 참여자 ID
+
+class ProjectCostCreate(ProjectCostBase):
+    pass
+
+class ProjectCostUpdate(BaseModel):
+    category: Optional[str] = None
+    name: Optional[str] = None
+    description: Optional[str] = None
+    amount: Optional[float] = None
+    participant_id: Optional[int] = None
+
+class ProjectCost(ProjectCostBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+class ProjectCostWithParticipant(ProjectCost):
+    """참여자 정보를 포함한 원가 항목"""
+    participant_name: Optional[str] = None
+    participant_code: Optional[str] = None
+    
+    class Config:
+        from_attributes = True

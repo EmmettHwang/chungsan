@@ -97,6 +97,7 @@ class Project(Base):
     participants = relationship("Participant", secondary=project_participants, back_populates="projects")
     settlements = relationship("Settlement", back_populates="project")
     progress_logs = relationship("ProjectProgress", back_populates="project", cascade="all, delete-orphan")
+    costs = relationship("ProjectCost", back_populates="project", cascade="all, delete-orphan")
 
 class Settlement(Base):
     """정산 모델"""
@@ -150,3 +151,29 @@ class ProjectProgress(Base):
     
     # 관계
     project = relationship("Project", back_populates="progress_logs")
+
+class ProjectCost(Base):
+    """프로젝트 원가 항목 모델"""
+    __tablename__ = "project_costs"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    
+    # 외래키
+    project_id = Column(Integer, ForeignKey('projects.id'), nullable=False)
+    
+    # 원가 항목 정보
+    category = Column(String(50), nullable=False)  # server, domain, ai_token, hardware, materials, labor, other
+    name = Column(String(200), nullable=False)  # 항목명 (예: "AWS 서버", "OpenAI API", "홍길동 인건비")
+    description = Column(Text, nullable=True)  # 상세 설명
+    amount = Column(Float, default=0.0)  # 금액
+    
+    # 인건비 관련 (category='labor'인 경우)
+    participant_id = Column(Integer, ForeignKey('participants.id'), nullable=True)  # 참여자 연결
+    
+    # 타임스탬프
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # 관계
+    project = relationship("Project", back_populates="costs")
+    participant = relationship("Participant", backref="labor_costs")

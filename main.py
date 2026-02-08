@@ -9,7 +9,7 @@ from fastapi.responses import FileResponse
 import os
 
 from app.database import engine, Base
-from app.routers import participants, projects, settlements, progress
+from app.routers import participants, projects, settlements, progress, costs
 
 # 데이터베이스 테이블 생성
 Base.metadata.create_all(bind=engine)
@@ -35,6 +35,7 @@ app.include_router(participants.router)
 app.include_router(projects.router)
 app.include_router(settlements.router)
 app.include_router(progress.router)
+app.include_router(costs.router)
 
 # 정적 파일 서빙
 if os.path.exists("static"):
